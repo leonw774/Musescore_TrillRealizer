@@ -33,23 +33,19 @@ MuseScore {
                 consoleLog("Nothing selected");
                 return;
             }
-            if (selection.length !== 1) {
-                consoleLog("Only allow select one element");
-                return;
-            }
-            var note = selection[0];
-            if (note.type !== Element.NOTE) {
-                consoleLog("Selection is not note");
-                return;
-            }
 
-            var chord = note.parent;
-            if (chord.notes.length !== 1) {
-                consoleLog("selected note cant be in a chord");
-                return;
+            for (var i = 0; i < selection.length; i++) {
+                var note = selection[i];
+                if (note.type !== Element.NOTE) {
+                    consoleLog("Selection index " + i + " is not a note");
+                    return;
+                }
+                var chord = note.parent;
+                if (chord.notes.length !== 1) {
+                    consoleLog("selected note cant be in a chord");
+                    return;
+                }
             }
-
-            var segment = chord.parent;
 
             var speed = 32;
             if (speed16.checked) {
@@ -69,25 +65,30 @@ MuseScore {
                 interval = 3;
             }
 
-            // get original duration and pitch
-            var noteDuration = chord.duration;
-            var notePitch = note.pitch;
-            // get the cursor to write new notes
-            var cursor = curScore.newCursor();
-            // position cursor at the start of the note
-            cursor.track = note.track;
-            cursor.rewindToTick(segment.tick);
-
-            // calculate how many notes we need
-            var numNotes = Math.floor(noteDuration.numerator * speed / noteDuration.denominator);
-
-            // write the trill notes
             curScore.startCmd();
-            for (var j = 0; j < numNotes; j++) {
-                var currentPitch = (j % 2 === 0) ? notePitch : (notePitch + interval);
-                consoleLog("wrote" + currentPitch);
-                cursor.setDuration(1, speed);
-                cursor.addNote(currentPitch);
+            for (var i = 0; i < selection.length; i++) {
+                var note = selection[i];
+                var chord = note.parent;
+                var segment = chord.parent;
+                // get original duration and pitch
+                var noteDur = chord.duration;
+                var notePitch = note.pitch;
+                // get the cursor to write new notes
+                var cursor = curScore.newCursor();
+                // position cursor at the start of the note
+                cursor.track = note.track;
+                cursor.rewindToTick(segment.tick);
+                // calculate how many notes we need
+                var numNotes = Math.floor(
+                    noteDur.numerator * speed / noteDur.denominator
+                );
+                // write the trill notes
+                for (var j = 0; j < numNotes; j++) {
+                    var currentPitch = (j % 2 === 0) ? notePitch : (notePitch + interval);
+                    consoleLog("wrote" + currentPitch);
+                    cursor.setDuration(1, speed);
+                    cursor.addNote(currentPitch);
+                }
             }
             curScore.endCmd();
             smartQuit();
