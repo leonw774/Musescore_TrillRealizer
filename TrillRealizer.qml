@@ -36,14 +36,12 @@ MuseScore {
 
             for (var i = 0; i < selection.length; i++) {
                 var note = selection[i];
-                if (note.type !== Element.NOTE) {
-                    consoleLog("Selection index " + i + " is not a note");
-                    return;
-                }
-                var chord = note.parent;
-                if (chord.notes.length !== 1) {
-                    consoleLog("selected note cant be in a chord");
-                    return;
+                if (note.type === Element.NOTE) {
+                    var chord = note.parent;
+                    if (chord.notes.length !== 1) {
+                        consoleLog("selected note cant be in a chord");
+                        return;
+                    }
                 }
             }
 
@@ -68,6 +66,9 @@ MuseScore {
             curScore.startCmd();
             for (var i = 0; i < selection.length; i++) {
                 var note = selection[i];
+                if (note.type !== Element.NOTE) {
+                    continue;
+                }
                 var chord = note.parent;
                 var segment = chord.parent;
                 // get original duration and pitch
@@ -84,10 +85,10 @@ MuseScore {
                 );
                 // write the trill notes
                 for (var j = 0; j < numNotes; j++) {
-                    var currentPitch = (j % 2 === 0) ? notePitch : (notePitch + interval);
-                    consoleLog("wrote" + currentPitch);
+                    var curPitch = (j % 2 === 0) ? notePitch : (notePitch + interval);
+                    consoleLog("wrote" + curPitch);
                     cursor.setDuration(1, speed);
-                    cursor.addNote(currentPitch);
+                    cursor.addNote(curPitch);
                 }
             }
             curScore.endCmd();
